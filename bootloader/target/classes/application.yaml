@@ -1,0 +1,12 @@
+microservicio: FDB078
+
+spring:
+  application:
+    name: feb-dashboard-orq
+  config:
+    import: "configserver:${config.server.url}"
+  profiles:
+    active: ${active.profile}
+  cloud:
+    config:
+      label: ${namespace}

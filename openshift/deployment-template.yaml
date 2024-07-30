@@ -1,0 +1,111 @@
+kind: Deployment
+apiVersion: apps/v1      
+metadata:                      
+  name: $PH_COMPONENT
+  namespace: $PH_NS                 
+  labels:
+    app: $PH_COMPONENT
+    app.kubernetes.io/component: $PH_COMPONENT
+    app.kubernetes.io/instance: $PH_COMPONENT
+    app.kubernetes.io/name: $PH_COMPONENT
+    app.kubernetes.io/part-of: $PH_COMPONENT-app
+    app.openshift.io/runtime: spring-boot
+    app.openshift.io/runtime-namespace: $PH_NS
+spec:
+  selector:
+    matchLabels:
+      app: $PH_COMPONENT
+  replicas: 1
+  template:
+    metadata:            
+      labels:
+        app: $PH_COMPONENT
+        deployment: $PH_COMPONENT
+      annotations:
+        openshift.io/generated-by: devops
+    spec:
+      containers:
+      - name: $PH_COMPONENT
+        image: veradatdev.azurecr.io/$PH_DOCKER_IMAGE:$PH_TAG
+        env:
+        - name: config.server.url
+          value: $PH_CONFIG_URL
+        - name: namespace
+          value: $PH_NS
+        resources:
+          limits:
+            cpu: $PH_LIMIT_CPU
+            memory: $PH_LIMIT_MEMORY
+          requests:
+            cpu: $PH_REQUEST_CPU
+            memory: $PH_REQUEST_MEMORY
+        ports:
+        - containerPort: $PH_PORT
+          name: http
+          protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      imagePullSecrets:
+      - name: veradat-acr-secret
+      schedulerName: default-scheduler             
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+---
+kind: Service
+apiVersion: v1            
+metadata:
+  name: $PH_COMPONENT
+  namespace: $PH_NS
+  labels:
+    app: $PH_COMPONENT
+    app.kubernetes.io/component: $PH_COMPONENT
+    app.kubernetes.io/instance: $PH_COMPONENT
+    app.kubernetes.io/name: $PH_COMPONENT
+    app.kubernetes.io/part-of: $PH_COMPONENT-app
+    app.openshift.io/runtime-version: $PH_TAG
+  annotations:
+    openshift.io/generated-by: devops              
+spec:
+  type: ClusterIP
+  ports:
+    - name: $PH_PORT-tcp
+      protocol: TCP
+      port: $PH_PORT
+      targetPort: $PH_PORT
+  internalTrafficPolicy: Cluster
+  selector:                    
+    app: $PH_COMPONENT               
+    deployment: $PH_COMPONENT
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: $PH_COMPONENT
+  namespace: $PH_NS
+  labels:
+    app: $PH_COMPONENT
+    app.kubernetes.io/component: $PH_COMPONENT
+    app.kubernetes.io/instance: $PH_COMPONENT
+    app.kubernetes.io/name: $PH_COMPONENT
+    app.kubernetes.io/part-of: $PH_COMPONENT-app
+    app.openshift.io/runtime-version: $PH_TAG
+spec:
+  to:
+    kind: Service
+    name: $PH_COMPONENT
+  port:
+    targetPort: $PH_PORT-tcp
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None      

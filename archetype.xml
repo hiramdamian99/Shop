@@ -1,0 +1,13 @@
+<archetype-descriptor xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="archetype.xsd">
+	<profiles>
+		<profile>
+			<id>orchestrator-microservice</id>
+			<!-- Configuración específica del micro orquestador -->
+		</profile>
+		<profile>
+			<id>system-microservice</id>
+			<!-- Configuración específica del micro de sistema -->
+		</profile>
+	</profiles>
+</archetype-descriptor>
